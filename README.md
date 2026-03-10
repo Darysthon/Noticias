@@ -45,7 +45,7 @@ Este é um **Portal de Notícias desenvolvido em PHP + MySQL**, com sistema de a
 Crie o banco executando o arquivo SQL:
 
 ```
-banco.sql
+database.db
 ```
 
 Ou execute manualmente:
