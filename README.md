@@ -29,6 +29,7 @@ Este é um **Portal de Notícias desenvolvido em PHP + MySQL**, com sistema de a
 ├── index.php           # Página inicial
 ├── noticia.php         # Página da notícia
 ├── login.php           # Login de autores
+├── logout.php          # Encerrar sessão
 ├── cadastrar.php       # Cadastro de autor
 ├── painel.php          # Painel administrativo
 ├── editar.php          # Editar notícia
@@ -36,7 +37,7 @@ Este é um **Portal de Notícias desenvolvido em PHP + MySQL**, com sistema de a
 ├── conexao.php         # Conexão com banco
 ├── style.css           # Estilos do site
 ├── uploads/            # Imagens enviadas
-└── banco.sql           # Estrutura do banco de dados
+└── database.db           # Estrutura do banco de dados
 ```
 
 ## 🗄 Banco de Dados
