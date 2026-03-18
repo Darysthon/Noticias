@@ -26,18 +26,19 @@ Este é um **Portal de Notícias desenvolvido em PHP + MySQL**, com sistema de a
 ```
 /portal-noticias
 │
-├── index.php           # Página inicial
-├── noticia.php         # Página da notícia
-├── login.php           # Login de autores
-├── logout.php          # Encerrar sessão
-├── cadastrar.php       # Cadastro de autor
-├── painel.php          # Painel administrativo
-├── editar.php          # Editar notícia
-├── excluir.php         # Excluir notícia
-├── conexao.php         # Conexão com banco
-├── style.css           # Estilos do site
-├── uploads/            # Imagens enviadas
-└── database.db           # Estrutura do banco de dados
+├── index.php            # Página inicial
+├── noticia.php          # Página da notícia
+├── login.php            # Login de autores
+├── logout.php           # Encerrar sessão
+├── cadastrar.php        # Cadastro de autor
+├── painel.php           # Painel administrativo
+├── editar.php           # Editar notícia
+├── excluir.php          # Excluir notícia
+├── editar_comentario.php   # editar comentário
+├── conexao.php             # Conexão com banco
+├── style.css               # Estilos do site
+├── uploads/                # Imagens enviadas
+└── database.db             # Estrutura do banco de dados
 ```
 
 ## 🗄 Banco de Dados
