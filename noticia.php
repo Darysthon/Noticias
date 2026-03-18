@@ -2,32 +2,45 @@
 session_start();
 require 'conexao.php';
 
-if (!isset($_GET['id'])) die("Notícia não encontrada!");
-$id = $_GET['id'];
+// 1. Pegar o ID da notícia com o nome correto
+$id_noticia = $_GET['id'] ?? die("Notícia não encontrada!");
+$usuario_logado_id = $_SESSION['usuario_id'] ?? null;
 
+// 2. BUSCAR A NOTÍCIA (Isso tinha sumido e causou os erros no HTML)
 $sql = "SELECT * FROM noticias WHERE id = :id";
 $stmt = $pdo->prepare($sql);
-$stmt->execute(['id' => $id]);
+$stmt->execute(['id' => $id_noticia]);
 $noticia = $stmt->fetch(PDO::FETCH_ASSOC);
 
 if (!$noticia) die("A notícia que você procura não existe.");
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['enviar_comentario'])) {
-    $nome = trim($_POST['nome']);
+// 3. Lógica para INSERIR comentário
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['enviar_comentario']) && $usuario_logado_id) {
     $comentario = trim($_POST['comentario']);
+    $nome = $_SESSION['usuario_nome'];
 
-    if (!empty($nome) && !empty($comentario)) {
-        $sqlInsert = "INSERT INTO comentarios (noticia_id, nome, comentario) VALUES (:noticia_id, :nome, :comentario)";
+    if (!empty($comentario)) {
+        $sqlInsert = "INSERT INTO comentarios (noticia_id, usuario_id, nome, comentario) VALUES (:nid, :uid, :nome, :txt)";
         $stmtInsert = $pdo->prepare($sqlInsert);
-        $stmtInsert->execute(['noticia_id' => $id, 'nome' => $nome, 'comentario' => $comentario]);
-        header("Location: noticia.php?id=$id");
+        $stmtInsert->execute(['nid' => $id_noticia, 'uid' => $usuario_logado_id, 'nome' => $nome, 'txt' => $comentario]);
+        header("Location: noticia.php?id=$id_noticia");
         exit;
     }
 }
 
+// 4. Lógica para EXCLUIR
+if (isset($_GET['excluir']) && $usuario_logado_id) {
+    $id_coment = $_GET['excluir'];
+    $sqlDel = "DELETE FROM comentarios WHERE id = :id AND usuario_id = :uid";
+    $pdo->prepare($sqlDel)->execute(['id' => $id_coment, 'uid' => $usuario_logado_id]);
+    header("Location: noticia.php?id=$id_noticia");
+    exit;
+}
+
+// 5. BUSCAR COMENTÁRIOS (Corrigido para usar $id_noticia)
 $sqlComentarios = "SELECT * FROM comentarios WHERE noticia_id = :noticia_id ORDER BY data_comentario DESC";
 $stmtComentarios = $pdo->prepare($sqlComentarios);
-$stmtComentarios->execute(['noticia_id' => $id]);
+$stmtComentarios->execute(['noticia_id' => $id_noticia]);
 $comentarios = $stmtComentarios->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
@@ -69,27 +82,41 @@ $comentarios = $stmtComentarios->fetchAll(PDO::FETCH_ASSOC);
             <?= nl2br(htmlspecialchars($noticia['conteudo'])) ?>
         </div>
 
-        <section class="comments-section">
-            <h3 style="margin-bottom: 20px;">Deixe seu comentário (<?= count($comentarios) ?>)</h3>
+<section class="comments-section">
+    <h3>Comentários (<?= count($comentarios) ?>)</h3>
 
-            <form method="POST" action="" style="margin-bottom: 40px; display: grid; gap: 15px;">
-                <input type="text" name="nome" placeholder="Seu nome" required>
-                <textarea name="comentario" rows="3" placeholder="Participe da discussão..." required></textarea>
-                <button type="submit" name="enviar_comentario" class="btn" style="justify-self: start;">Enviar Comentário</button>
-            </form>
+    <?php if ($usuario_logado_id): ?>
+        <form method="POST" style="margin-bottom: 40px; display: grid; gap: 15px;">
+            <p>Logado como: <strong><?= $_SESSION['usuario_nome'] ?></strong></p>
+            <textarea name="comentario" rows="3" placeholder="Participe da discussão..." required></textarea>
+            <button type="submit" name="enviar_comentario" class="btn">Enviar Comentário</button>
+        </form>
+    <?php else: ?>
+        <p style="background: #fee2e2; padding: 15px; border-radius: 8px;">
+            Você precisa estar <a href="login.php">logado</a> para comentar.
+        </p>
+    <?php endif; ?>
 
-            <div>
-                <?php foreach ($comentarios as $c): ?>
-                    <div class="comment-box">
-                        <div class="comment-header">
-                            <span class="comment-author"><?= htmlspecialchars($c['nome']) ?></span>
-                            <span class="comment-date"><?= date('d/m/Y H:i', strtotime($c['data_comentario'])) ?></span>
-                        </div>
-                        <div style="color: #475569;"><?= nl2br(htmlspecialchars($c['comentario'])) ?></div>
+    <div>
+        <?php foreach ($comentarios as $c): ?>
+            <div class="comment-box">
+                <div class="comment-header">
+                    <span class="comment-author"><?= htmlspecialchars($c['nome']) ?></span>
+                    <span class="comment-date"><?= date('d/m/H:i', strtotime($c['data_comentario'])) ?></span>
+                </div>
+                <div style="color: #475569;"><?= nl2br(htmlspecialchars($c['comentario'])) ?></div>
+
+                <?php if ($usuario_logado_id == $c['usuario_id']): ?>
+                    <div style="margin-top: 10px; font-size: 0.8em;">
+                        <a href="editar_comentario.php?id=<?= $c['id'] ?>" style="color: blue;">Editar</a> |
+                        <a href="?id=<?= $id_noticia ?>&excluir=<?= $c['id'] ?>"
+                           onclick="return confirm('Deseja apagar?')" style="color: red;">Excluir</a>
                     </div>
-                <?php endforeach; ?>
+                <?php endif; ?>
             </div>
-        </section>
+        <?php endforeach; ?>
+    </div>
+</section>
     </main>
 </body>
 </html>
